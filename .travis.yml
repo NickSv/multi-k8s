@@ -1,0 +1,9 @@
+sudo: required
+services:
+  - docker
+before_install:
+  - curl https://sdk.cloud.google.com | bash > /dev/null;                   # install Google Cloud SDK inside TravisCI container
+  - source $HOME/google-cloud-sdk/path.bash.inc                             # apply config from path.bash.inc file inside GCSDK home directory to shell inside container
+  - gcloud components update kubectl                                        # install kubectl inside container
+  - gcloud auth activate-service-account --key-file service-account.json    # authenticate to GC using credentials from service-account.json file
+  - openssl aes-256-cbc -K $encrypted_0c35eebf403c_key -iv $encrypted_0c35eebf403c_iv -in service-account.json.enc -out service-account.json -d   # this was provided by Travis after encrypting service-account.json
