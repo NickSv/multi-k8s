@@ -1,9 +1,27 @@
-sudo: required
+sudo: required    # grant admin privilleges
 services:
-  - docker
+  - docker        # use docker in this project
+env:
+  global:
+    - SHA=$(git rev-parse HEAD)         # assign git commit version to environment variable SHA inside TravisCI
+    - CLOUDSDK_CORE_DISABLE_PROMPTS=1   # disable GC prompts from displaying since deployment is automated
 before_install:
+  - openssl aes-256-cbc -K $encrypted_0c35eebf403c_key -iv $encrypted_0c35eebf403c_iv -in service-account.json.enc -out service-account.json -d   # this was provided by Travis after encrypting service-account.json
   - curl https://sdk.cloud.google.com | bash > /dev/null;                   # install Google Cloud SDK inside TravisCI container
   - source $HOME/google-cloud-sdk/path.bash.inc                             # apply config from path.bash.inc file inside GCSDK home directory to shell inside container
   - gcloud components update kubectl                                        # install kubectl inside container
   - gcloud auth activate-service-account --key-file service-account.json    # authenticate to GC using credentials from service-account.json file
-  - openssl aes-256-cbc -K $encrypted_0c35eebf403c_key -iv $encrypted_0c35eebf403c_iv -in service-account.json.enc -out service-account.json -d   # this was provided by Travis after encrypting service-account.json
+  - gcloud config set project multi-k8s-256222                              # tell GC which GC project to work on
+  - gcloud config set compute/zone us-east1-b	                              # tell GC which Zone to use
+  - gcloud container clusters get-credentials multik8s-cluster	            # tell GC on which cluster to work
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin   # login to docker
+  - docker build -t nicksv/react-test -f ./client/Dockerfile.dev ./client   # build image for tests
+
+script:
+  - docker run -e CI=true nicksv/react-test npm run test                    # run test image in CI mode
+
+deploy:
+  provider: script            # run specific script for deployment
+  script: bash ./deploy.sh    # use deploy.sh file as a script
+  on:
+    branch: master            # run deployment script only if push was done from master branch
