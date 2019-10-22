@@ -1,4 +1,4 @@
-apiVersionL: certmanager.k8s.io/v1alpha1
+apiVersion: certmanager.k8s.io/v1alpha1
 kind: Certificate
 metadata:
   name: nicksvk8s-net-tls
