@@ -1,0 +1,20 @@
+apiVersionL: certmanager.k8s.io/v1alpha1
+kind: Certificate
+metadata:
+  name: nicksvk8s-net-tls
+spec:
+  secretName: nicksvk8s-net     # name of the k8s Secret to store certificate in after obtaining it
+  issuerRef:
+    name: letsencrypt-prod      # name of issuer Object we created
+    kind: ClusterIssuer         # same as kind of issuer Object we created
+  commonName: nicksvk8s.net     # domain name for which this certificate is applicable
+  dnsNames:                     # list of domains to associate with this certificate
+    - nicksvk8s.net
+    - www.nicksvk8s.net
+  acme:
+    config:
+      - http01:
+          ingressClass: nginx
+        domains:                # list of domains to be verified by Lets Encrypt
+          - nicksvk8s.net
+          - www.nicksvk8s.net
